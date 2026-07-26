@@ -1,6 +1,11 @@
 from fastapi import FastAPI
-from backend.app.api.routes import router
+from app.api.routes import router as main_router
+from app.api.auth import router as auth_router
+from app.database.init_db import init_db
 
 app = FastAPI()
 
-app.include_router(router)
+init_db()
+
+app.include_router(main_router)
+app.include_router(auth_router)
