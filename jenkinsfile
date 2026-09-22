@@ -1,0 +1,25 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Git LFS') {
+            steps {
+                sh 'git lfs pull'
+            }
+        }
+
+        stage('Verify Project') {
+            steps {
+                sh 'echo "ML Hub source successfully checked out"'
+                sh 'git lfs ls-files'
+            }
+        }
+    }
+}
