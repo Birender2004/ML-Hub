@@ -39,5 +39,43 @@ pipeline {
                 '''
             }
         }
+
+        stage('Build Docker Images') {
+            steps {
+                sh '''
+                    docker build \
+                        -t birnder2026/ml-hub-backend:1.0.0 \
+                        ./backend
+
+                    docker build \
+                        -t birender2026/ml-hub-frontend:1.0.0 \
+                        ./frontend
+                '''
+            }
+        }
+
+        stage('Push Docker Images') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login \
+                            -u "$DOCKER_USERNAME" \
+                            --password-stdin
+
+                        docker push <YOUR_DOCKERHUB_USERNAME>/ml-hub-backend:1.0.0
+
+                        docker push <YOUR_DOCKERHUB_USERNAME>/ml-hub-frontend:1.0.0
+
+                        docker logout
+                    '''
+                }
+            }
+        }
     }
 }
