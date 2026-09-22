@@ -23,7 +23,7 @@ pipeline {
                         --volumes-from jenkins \
                         -w "$WORKSPACE/backend" \
                         python:3.11-slim \
-                        bash -c "pip install --no-cache-dir -r requirements.txt && pytest"
+                        bash -c "pip install --no-cache-dir -r requirements.txt pytest && pytest"
                 '''
             }
         }
