@@ -21,5 +21,29 @@ pipeline {
                 sh 'git lfs ls-files'
             }
         }
+
+        stage('Backend Tests') {
+            steps {
+                sh '''
+                    docker run --rm \
+                        -v "$WORKSPACE/backend:/app" \
+                        -w /app \
+                        python:3.11-slim \
+                        bash -c "pip install --no-cache-dir -r requirements.txt && pytest"
+                '''
+            }
+        }
+
+        stage('Frontend Build') {
+            steps {
+                sh '''
+                    docker run --rm \
+                        -v "$WORKSPACE/frontend:/app" \
+                        -w /app \
+                        node:20-alpine \
+                        sh -c "npm ci && npm run build"
+                '''
+            }
+        }
     }
 }
