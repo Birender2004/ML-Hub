@@ -371,8 +371,8 @@ firebase-adminsdk-*.json
 backend/trained_models/fashion/images/
 
 # Large ML model artifacts
-backend/trained_models/fashion/feature_list.pkl
-backend/trained_models/movie/similarity.pkl
+# backend/trained_models/fashion/feature_list.pkl
+# backend/trained_models/movie/similarity.pkl
 
 # Fashion recommender images
 backend/trained_models/fashion/images/
