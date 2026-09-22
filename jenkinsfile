@@ -11,8 +11,10 @@ pipeline {
 
         stage('Verify Project') {
             steps {
-                sh 'echo "ML Hub source successfully checked out"'
-                sh 'git lfs ls-files'
+                sh '''
+                    echo "ML Hub source successfully checked out"
+                    git lfs ls-files
+                '''
             }
         }
 
@@ -23,7 +25,14 @@ pipeline {
                         --volumes-from jenkins \
                         -w "$WORKSPACE/backend" \
                         python:3.11-slim \
-                        bash -c "pip install --no-cache-dir -r requirements.txt pytest && PYTHONPATH=. pytest"
+                        bash -c "
+                            pip install \
+                                --default-timeout=300 \
+                                --retries=10 \
+                                --no-cache-dir \
+                                -r requirements.txt pytest \
+                            && PYTHONPATH=. pytest
+                        "
                 '''
             }
         }
@@ -44,7 +53,7 @@ pipeline {
             steps {
                 sh '''
                     docker build \
-                        -t birnder2026/ml-hub-backend:1.0.0 \
+                        -t birender2026/ml-hub-backend:1.0.0 \
                         ./backend
 
                     docker build \
@@ -68,9 +77,9 @@ pipeline {
                             -u "$DOCKER_USERNAME" \
                             --password-stdin
 
-                        docker push <YOUR_DOCKERHUB_USERNAME>/ml-hub-backend:1.0.0
+                        docker push birender2026/ml-hub-backend:1.0.0
 
-                        docker push <YOUR_DOCKERHUB_USERNAME>/ml-hub-frontend:1.0.0
+                        docker push birender2026/ml-hub-frontend:1.0.0
 
                         docker logout
                     '''
