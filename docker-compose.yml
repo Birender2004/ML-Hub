@@ -1,17 +1,22 @@
-services:
 
+services:
   backend:
     image: birender2026/ml-hub-backend:1.0.0
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: ml-hub-backend
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend/trained_models/fashion/images:/app/trained_models/fashion/images:ro
     environment:
       DB_HOST: host.docker.internal
-      DB_PORT: 3306
+      DB_PORT: "3306"
       DB_NAME: mlhub
       DB_USER: root
-      DB_PASSWORD: 1234
-      OMDB_API_KEY: dd0b5093
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      OMDB_API_KEY: ${OMDB_API_KEY:?Set OMDB_API_KEY in .env}
     restart: unless-stopped
 
   frontend:

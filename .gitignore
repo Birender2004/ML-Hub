@@ -376,3 +376,12 @@ backend/trained_models/fashion/images/
 
 # Fashion recommender images
 backend/trained_models/fashion/images/
+
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+.env
+.env.*
+!.env.example
