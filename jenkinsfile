@@ -3,7 +3,6 @@ pipeline {
     agent any
 
     stages {
-
         stage('Git LFS') {
             steps {
                 sh 'git lfs pull'
@@ -39,6 +38,22 @@ pipeline {
                         dir --redact frontend
 
                     echo "Gitleaks scans completed successfully."
+                '''
+            }
+        }
+
+        stage('Bandit Security Scan') {
+            steps {
+                sh '''
+                    echo "Running Bandit Python security scan..."
+
+                    docker run --rm \
+                        --volumes-from jenkins \
+                        -w "$WORKSPACE" \
+                        ghcr.io/pycqa/bandit/bandit:latest \
+                        -r backend/app
+
+                    echo "Bandit security scan completed."
                 '''
             }
         }
@@ -103,7 +118,6 @@ pipeline {
                             --password-stdin
 
                         docker push birender2026/ml-hub-backend:1.0.0
-
                         docker push birender2026/ml-hub-frontend:1.0.0
 
                         docker logout
