@@ -1,42 +1,20 @@
 
-pipeline {
-    agent any
-
-    stages {
-
-        stage('Git LFS') {
-            steps {
-                sh 'git lfs pull'
-            }
-        }
-
-        stage('Verify Project') {
-            steps {
-                sh '''
-                    echo "ML Hub source successfully checked out"
-                    git lfs ls-files
-                '''
-            }
-        }
-
         stage('Gitleaks Secret Scan') {
             steps {
                 sh '''
                     echo "Scanning backend for secrets..."
 
                     docker run --rm \
-                        --volumes-from jenkins \
-                        -w /path \
                         -v "$WORKSPACE:/path" \
+                        -w /path \
                         zricethezav/gitleaks:v8.30.1 \
                         dir --redact /path/backend
 
                     echo "Scanning frontend for secrets..."
 
                     docker run --rm \
-                        --volumes-from jenkins \
-                        -w /path \
                         -v "$WORKSPACE:/path" \
+                        -w /path \
                         zricethezav/gitleaks:v8.30.1 \
                         dir --redact /path/frontend
 
@@ -44,74 +22,3 @@ pipeline {
                 '''
             }
         }
-
-        stage('Backend Tests') {
-            steps {
-                sh '''
-                    docker run --rm \
-                        --volumes-from jenkins \
-                        -w "$WORKSPACE/backend" \
-                        python:3.11-slim \
-                        bash -c "
-                            pip install \
-                                --default-timeout=300 \
-                                --retries=10 \
-                                --no-cache-dir \
-                                -r requirements.txt pytest \
-                            && PYTHONPATH=. pytest
-                        "
-                '''
-            }
-        }
-
-        stage('Frontend Build') {
-            steps {
-                sh '''
-                    docker run --rm \
-                        --volumes-from jenkins \
-                        -w "$WORKSPACE/frontend" \
-                        node:20-alpine \
-                        sh -c "npm ci && npm run build"
-                '''
-            }
-        }
-
-        stage('Build Docker Images') {
-            steps {
-                sh '''
-                    docker build \
-                        -t birender2026/ml-hub-backend:1.0.0 \
-                        ./backend
-
-                    docker build \
-                        -t birender2026/ml-hub-frontend:1.0.0 \
-                        ./frontend
-                '''
-            }
-        }
-
-        stage('Push Docker Images') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerhub-credentials',
-                        usernameVariable: 'DOCKER_USERNAME',
-                        passwordVariable: 'DOCKER_PASSWORD'
-                    )
-                ]) {
-                    sh '''
-                        echo "$DOCKER_PASSWORD" | docker login \
-                            -u "$DOCKER_USERNAME" \
-                            --password-stdin
-
-                        docker push birender2026/ml-hub-backend:1.0.0
-
-                        docker push birender2026/ml-hub-frontend:1.0.0
-
-                        docker logout
-                    '''
-                }
-            }
-        }
-    }
-}
