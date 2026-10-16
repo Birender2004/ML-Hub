@@ -25,18 +25,18 @@ pipeline {
                     echo "Scanning backend for secrets..."
 
                     docker run --rm \
-                        -v "$WORKSPACE:/path" \
-                        -w /path \
+                        --volumes-from jenkins \
+                        -w "$WORKSPACE" \
                         zricethezav/gitleaks:v8.30.1 \
-                        dir --redact /path/backend
+                        dir --redact backend
 
                     echo "Scanning frontend for secrets..."
 
                     docker run --rm \
-                        -v "$WORKSPACE:/path" \
-                        -w /path \
+                        --volumes-from jenkins \
+                        -w "$WORKSPACE" \
                         zricethezav/gitleaks:v8.30.1 \
-                        dir --redact /path/frontend
+                        dir --redact frontend
 
                     echo "Gitleaks scans completed successfully."
                 '''
