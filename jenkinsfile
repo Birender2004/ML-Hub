@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -14,6 +15,32 @@ pipeline {
                 sh '''
                     echo "ML Hub source successfully checked out"
                     git lfs ls-files
+                '''
+            }
+        }
+
+        stage('Gitleaks Secret Scan') {
+            steps {
+                sh '''
+                    echo "Scanning backend for secrets..."
+
+                    docker run --rm \
+                        --volumes-from jenkins \
+                        -w /path \
+                        -v "$WORKSPACE:/path" \
+                        zricethezav/gitleaks:v8.30.1 \
+                        dir --redact /path/backend
+
+                    echo "Scanning frontend for secrets..."
+
+                    docker run --rm \
+                        --volumes-from jenkins \
+                        -w /path \
+                        -v "$WORKSPACE:/path" \
+                        zricethezav/gitleaks:v8.30.1 \
+                        dir --redact /path/frontend
+
+                    echo "Gitleaks scans completed successfully."
                 '''
             }
         }
