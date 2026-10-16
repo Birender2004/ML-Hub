@@ -105,6 +105,54 @@ pipeline {
             }
         }
 
+        stage('Trivy Image Security Scan') {
+            steps {
+                sh '''
+                    mkdir -p reports
+
+                    echo "Scanning backend image with Trivy..."
+
+                    docker run --rm \
+                        --volumes-from jenkins \
+                        -v trivy-cache:/root/.cache/ \
+                        -w "$WORKSPACE" \
+                        aquasec/trivy:0.74.0 \
+                        image \
+                        --timeout 5m \
+                        --scanners vuln \
+                        --severity HIGH,CRITICAL \
+                        --format table \
+                        --exit-code 0 \
+                        --output reports/trivy-backend.txt \
+                        birender2026/ml-hub-backend:1.0.0
+
+                    echo "Scanning frontend image with Trivy..."
+
+                    docker run --rm \
+                        --volumes-from jenkins \
+                        -v trivy-cache:/root/.cache/ \
+                        -w "$WORKSPACE" \
+                        aquasec/trivy:0.74.0 \
+                        image \
+                        --timeout 5m \
+                        --scanners vuln \
+                        --severity HIGH,CRITICAL \
+                        --format table \
+                        --exit-code 0 \
+                        --output reports/trivy-frontend.txt \
+                        birender2026/ml-hub-frontend:1.0.0
+
+                    echo "Trivy scans completed."
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'reports/trivy-*.txt',
+                                     allowEmptyArchive: true
+                }
+            }
+        }
+
         stage('Push Docker Images') {
             steps {
                 withCredentials([
