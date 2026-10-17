@@ -2,6 +2,10 @@
 pipeline {
     agent any
 
+    tools {
+        sonarScanner 'SonarScanner'
+    }
+
     stages {
         stage('Git LFS') {
             steps {
@@ -88,6 +92,19 @@ pipeline {
                         node:20-alpine \
                         sh -c "npm ci && npm run build"
                 '''
+            }
+        }
+
+        stage('SonarQube Code Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        sonar-scanner \
+                            -Dsonar.projectKey=ml-hub \
+                            -Dsonar.sources=backend/app,frontend/src \
+                            -Dsonar.sourceEncoding=UTF-8
+                    '''
+                }
             }
         }
 
